@@ -49,10 +49,10 @@ func TestCheckTypeSetElemNestedAttrs(resourceName, attrName string, depth int, v
 				if _, exists := is.Attributes[strings.Join(parts[:d+1], ".")+".#"]; !exists {
 					return fmt.Errorf("%q attr %q is not TypeSet", resourceName, attrName)
 				}
-				nestedAttr := parts[d+2]
 				elementId := parts[d+1]
+				nestedAttr := strings.Join(parts[d+2:], ".")
 				// check if the nestedAttr exists in the passed values map
-				// if it does and matches, increment the matches count
+				// if it does, and matches, increment the matches count
 				if v, exists := values[nestedAttr]; exists && stateValue == v {
 					matches[elementId] = matches[elementId] + 1
 					// exit if there is an element that is a full match
