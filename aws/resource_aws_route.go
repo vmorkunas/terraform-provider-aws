@@ -284,12 +284,21 @@ func resourceAwsRouteCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("destination_cidr_block"); ok {
 		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		    try := 1
+		    maxRetries := 30
+		    for try < maxRetries {
+			log.Printf("Route table lookup for matching route with CIDR: %s, Route Table Id: %s, try#: %d", v.(string), d.Get("route_table_id").(string), try)
 			route, err = resourceAwsRouteFindRoute(conn, d.Get("route_table_id").(string), v.(string), "")
-			if err == nil && route != nil {
-				return nil
+			if ( route != nil && err == nil ) {
+			    break
 			}
-
-			return resource.RetryableError(err)
+			time.Sleep(10 * time.Second)
+			try += 1
+		    }
+		    if ( route != nil && err == nil ) {
+			return nil
+		    }
+		    return resource.RetryableError(err)
 		})
 		if isResourceTimeoutError(err) {
 			route, err = resourceAwsRouteFindRoute(conn, d.Get("route_table_id").(string), v.(string), "")
